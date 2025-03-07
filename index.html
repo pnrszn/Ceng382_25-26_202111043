@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ready! Set! Go!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="backgroundDay">
+    <input type="checkbox" id="dark-mode-toggle">
+    <label for="dark-mode-toggle" class="dark-mode-btn"></label>
+    
+    <video id="background-video" autoplay loop muted>
+        <source src="intro.mp4" type="video/mp4">
+    </video>
+    
+    <div class="login-container">
+        <h2>Ready to race?</h2>
+        <form action="#" method="post">
+            <input type="text" name="username" placeholder="Username" required />
+            <input type="password" name="password" placeholder="Password" required />
+        </form>
+        
+        <div class="wheel" onclick="this.classList.add('clicked')">
+            <div class="center"></div>
+            <div class="handle"></div>
+            <div class="handle"></div>
+            <div class="handle"></div>
+            <div class="start-text">Start!</div>
+        </div>
+        
+    </div>
+    
+    <div class="flags">
+        <div class="flag left"></div>
+        <div class="flag right"></div>
+        <div class="pole left"></div>
+        <div class="pole right"></div>
+    </div>
+    
+    <div class="number-container">
+        <div class="digit nine">
+            <div class="border9"></div>
+        </div>
+        <div class="digit five">
+            <div class="topborder5"></div>
+            <div class="bottomborder5"></div>
+        </div>
+    </div>
+    <div class="thunderbolt">
+        <div class="shape"></div>
+    </div>
+    
+</body>
+
+</html>

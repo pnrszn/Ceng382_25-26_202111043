@@ -1,0 +1,467 @@
+/*how to use custom (downloaded) font in css?*/
+@font-face {
+    font-family: 'TitleFont';
+    src: url('SlugsRacer.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CustomFont';
+    src: url('Racesky.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --clr: orange;
+}
+
+.backgroundDay {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'TitleFont', sans-serif;
+    font-size: 25px;
+    background: url("radiatorsprings-day.webp") no-repeat center center/cover;
+    transition: background 0.5s ease-in-out;
+}
+
+/*design a basic login page using html and css. everything should be centered and make sure the background is an image. seperate the html and css files.
+*/
+.login-container {
+    background: rgba(216, 200, 200, 0.8);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 300px;
+    transition: background 0.5s ease-in-out, color 0.3s ease-in-out;
+    z-index: 10; 
+}
+
+h2 {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    color: black;
+    transition: color 0.3s ease-in-out;
+}
+
+input {
+    width: 250px;
+    padding: 10px;
+    margin: 10px auto;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    text-align: center;
+    display: block;
+    font-family: 'CustomFont', sans-serif;
+    background: linear-gradient(to right, yellow, red);
+    color: black;
+    transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/*how to draw a steering wheel in html css?*/
+.wheel {
+    width: 80px;
+    height: 80px;
+    background: rgba(216, 200, 200, 0.8);
+    border-radius: 50%;
+    border: 12px solid black;
+    position: relative;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+    margin: 20px auto;
+}
+
+.wheel:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.wheel.clicked {
+    animation: rotate 2s linear forwards;
+}
+
+.center {
+    width: 40px;
+    height: 32px;
+    background: black;
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    transform: translate(-50%, -50%);
+    border-radius: 800px;
+    clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+}
+
+.handle {
+    width: 48px;
+    height: 8px;
+    background: black;
+    position: absolute;
+    top: 60px;
+    left: 40px;
+    transform: translate(-50%, -50%) rotate(90deg);
+    border-radius: 10px;
+}
+
+.handle:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(170deg);
+    position: absolute;
+    left: 58px;
+    top: 32px;
+}
+
+.handle:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(-170deg);
+    position: absolute;
+    left: 22px;
+    top: 32px;
+}
+
+.start-text {
+    font-family: 'CustomFont', sans-serif;
+    font-size: 24px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    text-shadow: 0px 3px 7px rgba(255, 0, 0, 0.7);
+}
+
+/* Fade and shrink animation for login container */
+@keyframes fadeOutShrink {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+
+:has(.wheel.clicked) .login-container {
+    animation: fadeOutShrink 1s forwards;
+    animation-delay: 0.5s;
+}
+
+#background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1s ease-out;
+    z-index: -1; 
+}
+
+:has(.wheel.clicked) #background-video {
+    opacity: 1;
+    transition-delay: 1s;
+}
+
+/*draw this flags (finish-line-flags.png)in html css */
+.flags {
+    position: absolute;
+    top: 75%;
+    left: 45%;
+    width: 200px;
+    height: 150px;
+    opacity: 1;
+}
+
+.flag {
+    position: absolute;
+    width: 140px;
+    height: 100px;
+    background-color: white;
+}
+
+.flag.left {
+    left: -45px;
+    transform: skewY(-15deg);
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 15% 100%);
+}
+
+.flag.right {
+    right: -45px;
+    transform: skewY(15deg);
+    clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+}
+
+.pole {
+    position: absolute;
+    width: 9px;
+    background-color: black;
+    height: 190px;
+    top: -15px;
+}
+
+.pole.left {
+    left: 88px;
+    transform: rotate(-15deg);
+}
+
+.pole.right {
+    right: 88px;
+    transform: rotate(15deg);
+}
+
+.flag::before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%),
+        linear-gradient(135deg, black 25%, transparent 25%, transparent 75%, black 75%);
+    background-size: 20px 20px;
+}
+
+:has(.wheel.clicked) .flags {
+    animation: fadeOutShrink 1s forwards;
+    animation-delay: 0.5s;
+}
+
+/*(source code from a tutorial for making a dark mode switch in a website) how do i make it using only css, without javascript?
+*/
+#dark-mode-toggle {
+    display: none;
+}
+
+body:has(#dark-mode-toggle:checked) {
+    background: url("radiatorsprings-night.webp") no-repeat center center/cover;
+}
+
+#dark-mode-toggle:checked~.login-container {
+    background: rgba(20, 20, 20, 0.9);
+}
+
+#dark-mode-toggle:checked~.login-container h2 {
+    color: white;
+}
+
+#dark-mode-toggle:checked~.login-container input {
+    background: linear-gradient(to left, yellow, red);
+    border: 1px solid #666;
+    color: white;
+}
+
+#dark-mode-toggle:checked~.login-container .start-text {
+    color: red;
+    text-shadow: 0px 3px 7px rgb(255, 255, 255);
+}
+
+#dark-mode-toggle:checked~.login-container .wheel {
+    background: rgba(20, 20, 20, 0.9);
+    border: 12px solid white;
+    box-shadow: 0 0 10px rgb(255, 255, 255);
+}
+
+#dark-mode-toggle:checked~.login-container .handle {
+    width: 48px;
+    height: 8px;
+    background: white;
+    position: absolute;
+    top: 60px;
+    left: 40px;
+    transform: translate(-50%, -50%) rotate(90deg);
+    border-radius: 10px;
+}
+
+#dark-mode-toggle:checked~.login-container .handle:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(170deg);
+    position: absolute;
+    left: 58px;
+    top: 32px;
+}
+
+#dark-mode-toggle:checked~.login-container .handle:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(-170deg);
+    position: absolute;
+    left: 22px;
+    top: 32px;
+}
+
+/* Dark Mode Button */
+.dark-mode-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(216, 200, 200, 0.8);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: background 0.3s ease-in-out;
+}
+
+/* Toggle Button Appearance */
+.dark-mode-btn::before {
+    content: "⏾";
+    font-size: 20px;
+}
+
+#dark-mode-toggle:checked+.dark-mode-btn::before {
+    content: "☀︎";
+}
+
+/*can i do gradient color with using borders in html css? (source code from a tutorial) this code draws a thunderbolt symbol, i want it to be yellow to red gradient. is it possible?*/
+.number-container {
+    position: absolute;
+    width: 200px;
+    height: 150px;
+    opacity: 0;
+    display: flex;
+}
+
+:has(.wheel.clicked) .number-container {
+    animation: showDrawing 5s forwards;
+    animation-delay: 5s;
+}
+
+:has(.wheel.clicked) .digit {
+    animation: showDrawing 5s forwards;
+    animation-delay: 5s;
+}
+
+.digit {
+    position: absolute;
+    opacity: 0;
+    background: linear-gradient(to bottom, yellow, red);
+    border: 5px solid black;
+}
+
+.five {
+    width: 60px;
+    height: 100px;
+    clip-path: polygon(0 0, 100% 0, 100% 21%, 32% 21%, 32% 42%, 100% 42%, 100% 100%, 0 100%, 0 79%, 67% 79%, 67% 59%, 0 59%);
+    left: 80px;
+    top: 20px;
+    border-radius: 15px;
+}
+
+.five .topborder5 {
+    position: absolute;
+    width: 50px;
+    height: 33px;
+    background: black;
+    top: 13px;
+    left: 12px;
+}
+
+.five .bottomborder5 {
+    position: absolute;
+    width: 46px;
+    height: 32px;
+    background: black;
+    top: 55px;
+}
+
+.nine {
+    width: 60px;
+    height: 100px;
+    clip-path: polygon(100% 0, 100% 100%, 100% 100%, 0 100%, 0 79%, 58% 79%, 57% 57%, 0 57%, 0 0);
+    border-radius: 15px;
+    left: 10px;
+    top: 20px;
+}
+
+.nine::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background-color: orange;
+    border: 5px solid black;
+    border-radius: 8px;
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nine .border9 {
+    position: absolute;
+    width: 39px;
+    height: 34px;
+    background: black;
+    top: 53px;
+}
+
+@keyframes showDrawing {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.thunderbolt {
+    display: flex;
+    gap: 60px;
+    transform: scaleX(-1) rotate(-90deg);
+    scale: 2.8;
+    position: absolute;
+    left: 950px;
+    top: 510px;
+    transform: translate(-50%, -50%) scaleX(-1) rotate(-100deg); 
+    z-index: -1;
+    opacity: 0;
+}
+
+:has(.wheel.clicked) .thunderbolt {
+    animation: showDrawing 5s forwards;
+    animation-delay: 5s;
+}
+
+.thunderbolt .shape {
+    position: relative;
+    width: 25px;
+    height: 50px;
+    background: var(--clr);
+    transform: rotate(45deg);
+}
+
+.thunderbolt .shape::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -20px;
+    border-bottom: 60px solid var(--clr);
+    border-left: 30px solid var(--clr);
+}
+
+.thunderbolt .shape::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    right: -20px;
+    border-top: 60px solid var(--clr);
+    border-right: 30px solid transparent;
+}
