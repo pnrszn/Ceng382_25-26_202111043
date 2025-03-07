@@ -1,4 +1,4 @@
-/*how to use custom (downloaded) font in css?*/
+/***AI***how to use custom (downloaded) font in css?*/
 @font-face {
     font-family: 'TitleFont';
     src: url('SlugsRacer.ttf') format('truetype');
@@ -11,6 +11,26 @@
     src: url('Racesky.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
+}
+
+/***AI***Implement a feature where pressing the 'H' key hides all HTML forms on the website, and
+pressing it again makes them reappear.*/
+.hidden {
+    display: none !important;
+}
+
+/***AI***Add a live clock to your login page that updates in real time and applies the same fonts and
+CSS used on your website.*/
+.clock {
+    font-size: 24px;
+    font-family: inherit;
+    font-weight: bold;
+    color: black; 
+    background: rgba(216, 200, 200, 0.8);
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-align: center;
+    display: inline-block;
 }
 
 :root {
@@ -30,7 +50,7 @@
     transition: background 0.5s ease-in-out;
 }
 
-/*design a basic login page using html and css. everything should be centered and make sure the background is an image. seperate the html and css files.
+/***AI***design a basic login page using html and css. everything should be centered and make sure the background is an image. seperate the html and css files.
 */
 .login-container {
     background: rgba(216, 200, 200, 0.8);
@@ -64,7 +84,7 @@ input {
     transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
 }
 
-/*how to draw a steering wheel in html css?*/
+/***AI***how to draw a steering wheel in html css?*/
 .wheel {
     width: 80px;
     height: 80px;
@@ -82,6 +102,7 @@ input {
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
 }
 
+/***AI***i want it to rotate for a some time when clicked once, then when the declared time ends it will fade away. dont use javascript*/
 @keyframes rotate {
     from {
         transform: rotate(0deg);
@@ -92,6 +113,7 @@ input {
     }
 }
 
+/***AI***how to make an animation that rotates when clicked (without holding, just clicking once) on this drawing in css? */
 .wheel.clicked {
     animation: rotate 2s linear forwards;
 }
@@ -145,7 +167,7 @@ input {
     text-shadow: 0px 3px 7px rgba(255, 0, 0, 0.7);
 }
 
-/* Fade and shrink animation for login container */
+/***AI***After pressing the steering wheel shaped button, I want the login container to disappear with a fade and shrink animation, then background image will change and a video will start in the background. How can I integrate it into my code? dont use javascript.*/
 @keyframes fadeOutShrink {
     0% {
         opacity: 1;
@@ -179,7 +201,7 @@ input {
     transition-delay: 1s;
 }
 
-/*draw this flags (finish-line-flags.png)in html css */
+/***AI***draw this flags (finish-line-flags.png) in html css */
 .flags {
     position: absolute;
     top: 75%;
@@ -243,7 +265,7 @@ input {
     animation-delay: 0.5s;
 }
 
-/*(source code from a tutorial for making a dark mode switch in a website) how do i make it using only css, without javascript?
+/***AI***(source code from a tutorial for making a dark mode switch in a website) how do i make it using only css, without javascript?
 */
 #dark-mode-toggle {
     display: none;
@@ -321,7 +343,6 @@ body:has(#dark-mode-toggle:checked) {
     transition: background 0.3s ease-in-out;
 }
 
-/* Toggle Button Appearance */
 .dark-mode-btn::before {
     content: "⏾";
     font-size: 20px;
@@ -331,7 +352,7 @@ body:has(#dark-mode-toggle:checked) {
     content: "☀︎";
 }
 
-/*can i do gradient color with using borders in html css? (source code from a tutorial) this code draws a thunderbolt symbol, i want it to be yellow to red gradient. is it possible?*/
+/***AI***can i do gradient color with using borders in html css? (source code from a tutorial) this code draws a thunderbolt symbol, i want it to be yellow to red gradient. is it possible?*/
 .number-container {
     position: absolute;
     width: 200px;
