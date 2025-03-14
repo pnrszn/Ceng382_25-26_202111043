@@ -18,10 +18,11 @@
 
     <div class="login-container">
         <h2>Ready to race?</h2>
-        <form action="#" method="post">
-            <input type="text" name="username" placeholder="Username" required />
-            <input type="password" name="password" placeholder="Password" required />
+        <form action="#" method="post" onsubmit="login(); return false;">
+            <input type="text" id="username" name="username" placeholder="Username" required />
+            <input type="password" id="password" name="password" placeholder="Password" required />
         </form>
+
 
         <div class="wheel" onclick="this.classList.add('clicked')">
             <div class="center"></div>
@@ -30,7 +31,7 @@
             <div class="handle"></div>
             <div class="start-text">Start!</div>
         </div>
-        <!-- Add a live clock to your login page that updates in real time and applies the same fonts and
+        <!-- *AI* Add a live clock to your login page that updates in real time and applies the same fonts and
     CSS used on your website. -->
         <div id="Clock" class="clock"></div>
     </div>
@@ -55,9 +56,9 @@
         <div class="shape"></div>
     </div>
 
-    <!-- Add a live clock to your login page that updates in real time and applies the same fonts and
+    <!-- *AI* Add a live clock to your login page that updates in real time and applies the same fonts and
     CSS used on your website. -->
-    <!-- i want to get rid of the login container completely when i press the 'h' key -->
+    <!-- *AI* i want to get rid of the login container completely when i press the 'h' key -->
     <script>
         function updateClock() {
             const now = new Date();
@@ -70,7 +71,7 @@
         updateClock();
     </script>
 
-    <!-- Implement a feature where pressing the 'H' key hides all HTML forms on the website, and
+    <!-- *AI* Implement a feature where pressing the 'H' key hides all HTML forms on the website, and
     pressing it again makes them reappear. -->
     <script>
         document.addEventListener("keydown", function (event) {
@@ -80,6 +81,34 @@
                 if (loginContainer) {
                     loginContainer.classList.toggle("hidden");
                 }
+            }
+        });
+
+        const loginAttempts = [];
+
+        document.querySelector(".wheel").addEventListener("click", function () {
+            // Get user input
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            /***AI*** Using JavaScript, modify the login screen so that when a user attempts to log in and clicks the login button, their username and password are stored in an array in the background. Then, print all elements of this array to the console.*/
+            // Save attempt to array
+            loginAttempts.push({ username, password });
+            console.log("Login Attempts:", loginAttempts);
+
+            // Default credentials
+            const defaultUsername = "admin";
+            const defaultPassword = "admin";
+
+            // Check login
+            if (username === defaultUsername && password === defaultPassword) {
+                alert("Login successful!");
+                this.classList.add("correct");
+                setTimeout(() => {
+                    window.location.href = "table.html"; // Redirect to table.html after animation
+                }, 7000);
+            } else {
+                alert("Invalid username or password. Please try again.");
             }
         });
     </script>

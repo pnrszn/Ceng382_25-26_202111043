@@ -114,7 +114,7 @@ input {
 }
 
 /***AI***how to make an animation that rotates when clicked (without holding, just clicking once) on this drawing in css? */
-.wheel.clicked {
+.wheel.correct {
     animation: rotate 2s linear forwards;
 }
 
@@ -179,7 +179,7 @@ input {
     }
 }
 
-:has(.wheel.clicked) .login-container {
+:has(.wheel.correct) .login-container {
     animation: fadeOutShrink 1s forwards;
     animation-delay: 0.5s;
 }
@@ -196,7 +196,7 @@ input {
     z-index: -1; 
 }
 
-:has(.wheel.clicked) #background-video {
+:has(.wheel.correct) #background-video {
     opacity: 1;
     transition-delay: 1s;
 }
@@ -260,7 +260,7 @@ input {
     background-size: 20px 20px;
 }
 
-:has(.wheel.clicked) .flags {
+:has(.wheel.correct) .flags {
     animation: fadeOutShrink 1s forwards;
     animation-delay: 0.5s;
 }
@@ -344,7 +344,7 @@ body:has(#dark-mode-toggle:checked) {
 }
 
 .dark-mode-btn::before {
-    content: "⏾";
+    content: "☽";
     font-size: 20px;
 }
 
@@ -361,14 +361,14 @@ body:has(#dark-mode-toggle:checked) {
     display: flex;
 }
 
-:has(.wheel.clicked) .number-container {
-    animation: showDrawing 5s forwards;
-    animation-delay: 5s;
+:has(.wheel.correct) .number-container {
+    animation: showDrawing 4s forwards;
+    animation-delay: 1s;
 }
 
-:has(.wheel.clicked) .digit {
-    animation: showDrawing 5s forwards;
-    animation-delay: 5s;
+:has(.wheel.correct) .digit {
+    animation: showDrawing 4s forwards;
+    animation-delay: 1s;
 }
 
 .digit {
@@ -449,16 +449,16 @@ body:has(#dark-mode-toggle:checked) {
     transform: scaleX(-1) rotate(-90deg);
     scale: 2.8;
     position: absolute;
-    left: 950px;
-    top: 510px;
+    left: 48%;
+    top: 57%;
     transform: translate(-50%, -50%) scaleX(-1) rotate(-100deg); 
     z-index: -1;
     opacity: 0;
 }
 
-:has(.wheel.clicked) .thunderbolt {
-    animation: showDrawing 5s forwards;
-    animation-delay: 5s;
+:has(.wheel.correct) .thunderbolt {
+    animation: showDrawing 4s forwards;
+    animation-delay: 1s;
 }
 
 .thunderbolt .shape {
