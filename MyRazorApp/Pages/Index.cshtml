@@ -1,7 +1,15 @@
-﻿@page
-@model MyRazorApp.Pages.IndexModel
-
-@* On the left side of the page, there will be a form that collects:
+﻿@* **AI** i want to create a razor page by implementing these steps and requirements:
+1)This task will be implemented on the Index page (Index.cshtml and Index.cshtml.cs).
+• Create a folder named Models inside the project folder (note: folder name is plural).
+• Inside this folder, create a class named ClassInformationModel.cs.
+• This class will store the following properties:
+o Id (auto-incremented)
+o ClassName
+o StudentCount
+o Description
+The Id property will be automatically incremented each time a new item is added to the list. The list
+will act like a simple in-memory database.
+2)On the left side of the page, there will be a form that collects:
 o Class Name
 o Student Count
 o Description
@@ -13,79 +21,88 @@ o Student Count
 o Description
 o Actions (Edit and Delete)
 The data should be validated and added to a static list each time the form is submitted. The data will
-then be displayed in the table *@
+then be displayed in the table. 
+3)Use Bootstrap to create a responsive layout with two columns (form on the left, table on the
+right).
+• Use Razor Pages only; no JavaScript is allowed.
+• All operations (Add, Edit, Delete) must be handled using C# methods in the PageModel.
+• Form validation should be done using C# attributes like [Required], [Range], etc.
+• When editing, pre-fill the form with the selected item's data.
+• After deletion or editing, refresh the page and update the table accordingly. *@
+@page
+@model MyRazorApp.Pages.IndexModel
 
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">Class Management</h1>
-        <div class="row">
-            <!-- Sol taraf: Form -->
-            <div class="col-md-4">
-                <form method="post">
-                    <input type="hidden" asp-for="IsEditing" />
-                    <input type="hidden" asp-for="NewClass.Id" />
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Add/Edit Class</h2>
+            <form method="post">
+                <input type="hidden" asp-for="EditId" />
 
-                    <div class="mb-3">
-                        <label class="form-label">Class Name</label>
-                        <input asp-for="NewClass.ClassName" class="form-control" />
-                        <span asp-validation-for="NewClass.ClassName" class="text-danger"></span>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="NewClass.ClassName"></label>
+                    <input asp-for="NewClass.ClassName" class="form-control" />
+                    <span asp-validation-for="NewClass.ClassName" class="text-danger"></span>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Student Count</label>
-                        <input asp-for="NewClass.StudentCount" class="form-control" />
-                        <span asp-validation-for="NewClass.StudentCount" class="text-danger"></span>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="NewClass.StudentCount"></label>
+                    <input asp-for="NewClass.StudentCount" class="form-control" />
+                    <span asp-validation-for="NewClass.StudentCount" class="text-danger"></span>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea asp-for="NewClass.Description" class="form-control"></textarea>
-                        <span asp-validation-for="NewClass.Description" class="text-danger"></span>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="NewClass.Description"></label>
+                    <textarea asp-for="NewClass.Description" class="form-control"></textarea>
+                    <span asp-validation-for="NewClass.Description" class="text-danger"></span>
+                </div>
 
-                    <button type="submit" class="btn btn-primary">
-                        @(Model.IsEditing ? "Update Class" : "Add Class")
-                    </button>
-                </form>
-            </div>
+                <button type="submit" asp-page-handler="Add" class="btn btn-primary">
+                    @(Model.EditId == 0 ? "Add Class" : "Update Class")
+                </button>
+            </form>
+        </div>
 
-            <!-- Sağ taraf: Tablo -->
-            <div class="col-md-8">
-                <table class="table table-striped table-hover">
-                    <thead>
+        <div class="col-md-6">
+            <h2>Class List</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Class Name</th>
+                        <th>Student Count</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Classes)
+                    {
                         <tr>
-                            <th>Id</th>
-                            <th>Class Name</th>
-                            <th>Student Count</th>
-                            <th>Description</th>
-                            <th>Actions</th>
+                            <td>@item.Id</td>
+                            <td>@item.ClassName</td>
+                            <td>@item.StudentCount</td>
+                            <td>@item.Description</td>
+                            <td>
+                                <a asp-page="./Index" asp-route-editId="@item.Id" class="btn btn-sm btn-warning">
+                                    <img src="/images/pencil-solid.svg" alt="Edit"
+                                        style="width: 1.2em; vertical-align: middle;" />
+                                </a>
+                                @* **AI** i want to add a pencil icon for edit button instead of the text "edit".
+                                i also want to add a trash can icon for the delete button in the same way. 
+                                how should i implement these two into this code?  *@
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id"
+                                    style="display: inline-block;">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <img src="/images/trash-solid.svg" alt="Delete"
+                                            style="width: 1.2em; vertical-align: middle;" />
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var classInfo in IndexModel.ClassList)
-                        {
-                            <tr>
-                                <td>@classInfo.Id</td>
-                                <td>@classInfo.ClassName</td>
-                                <td>@classInfo.StudentCount</td>
-                                <td>@classInfo.Description</td>
-                                <td>
-                                    <form method="post">
-                                        <button type="submit" asp-page-handler="Edit" asp-route-id="@classInfo.Id" class="btn btn-warning btn-sm">Edit</button>
-                                        <button type="submit" asp-page-handler="Delete" asp-route-id="@classInfo.Id" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
-</body>
-</html>
+</div>

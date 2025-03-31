@@ -1,3 +1,23 @@
+/* **AI** now i want to customize it. implement these (dont use javascript):
+1)add hover animation on add class, edit, delete, update class buttons.
+2)add icons on edit and delete buttons.
+3)add a background image and use custom font.(both will be downloaded later) */
+
+body {
+  background-image: url('sunset.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  font-family: 'CustomFont', sans-serif;
+  color: #ffffff;
+}
+
+@font-face {
+  font-family: 'CustomFont';
+  src: url('FeelinTeachyTTF.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 form {
   margin-bottom: 20px;
 }
@@ -6,10 +26,13 @@ form div {
   margin-bottom: 10px;
 }
 
-input, textarea, button {
+input,
+textarea,
+button {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 button {
@@ -17,10 +40,15 @@ button {
   color: white;
   border: none;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:hover {
   background-color: #45a049;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 table {
@@ -29,7 +57,8 @@ table {
   margin-top: 20px;
 }
 
-th, td {
+th,
+td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
@@ -38,4 +67,82 @@ th, td {
 th {
   background-color: #4CAF50;
   color: white;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  color: black;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-warning:hover {
+  background-color: #ffca2c;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* icons*/
+.btn-warning img,
+.btn-danger img {
+  width: 1.2em;
+  vertical-align: middle;
+}
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a {
+  color: #0077cc;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: rgba(9, 11, 153, 0.795);
+  border-color: rgb(255, 255, 255);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
 }
