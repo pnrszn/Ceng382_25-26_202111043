@@ -29,80 +29,168 @@ right).
 • Form validation should be done using C# attributes like [Required], [Range], etc.
 • When editing, pre-fill the form with the selected item's data.
 • After deletion or editing, refresh the page and update the table accordingly. *@
+
+@* **AI** these are the codes for my razor page. i have id, class name, student count, description and edit/delete features as icons, also add and update class features. 
+you need to add the following new features without changing the already existing features.
+now i want to add filtering and pagination features. filtering will be done on the data list in the backend and will be written inside of OnGet methods.
+you will also create a new model class called ClassInformationTable. This model will store
+the filtered version of your main model and will be used to display data in the table. In this
+model, the ID should not be shown in the table, but the ID will still be used in the
+background for actions like edit, delete, or details.
+in addition to filtering, you are required to implement pagination. To properly test the
+pagination feature, you need to generate synthetic data. Make sure to create a list with at
+least 100 sample records so you can see how the pagination works across multiple pages.
+Tip: When a filter value changes, the form should submit automatically or the user should click a
+"Filter" button. This will trigger the OnGet method with the selected filter values passed as
+query parameters.
+give the updated codes according to the file names i have given you. *@
+
 @page
 @model MyRazorApp.Pages.IndexModel
+@{
+    ViewData["Title"] = "Class Management";
+}
 
-<div class="container">
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Add/Edit Class</h2>
-            <form method="post">
-                <input type="hidden" asp-for="EditId" />
+<div class="row">
 
-                <div class="form-group">
-                    <label asp-for="NewClass.ClassName"></label>
-                    <input asp-for="NewClass.ClassName" class="form-control" />
-                    <span asp-validation-for="NewClass.ClassName" class="text-danger"></span>
-                </div>
+    @* Left Column: Add/Edit Form *@
+    <div class="col-md-6">
+        @* (Add/Edit form remains the same) *@
+        <h2>@(Model.EditId == 0 ? "Add New Class" : "Edit Class")</h2>
+        <form method="post">
+            <input type="hidden" asp-for="EditId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group mb-2">
+                <label asp-for="NewClass.ClassName"></label>
+                <input asp-for="NewClass.ClassName" class="form-control" />
+                <span asp-validation-for="NewClass.ClassName" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-2">
+                <label asp-for="NewClass.StudentCount"></label>
+                <input asp-for="NewClass.StudentCount" type="number" class="form-control" />
+                <span asp-validation-for="NewClass.StudentCount" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="NewClass.Description"></label>
+                <textarea asp-for="NewClass.Description" class="form-control"></textarea>
+                <span asp-validation-for="NewClass.Description" class="text-danger"></span>
+            </div>
+            <button type="submit" asp-page-handler="Add" class="btn btn-primary btn-full-width">
+                @(Model.EditId == 0 ? "Add Class" : "Update Class")
+            </button>
+            @if (Model.EditId != 0)
+            {
+                <a asp-page="./Index" class="btn btn-danger">Cancel Edit</a>
+            }
+        </form>
+    </div>
 
-                <div class="form-group">
-                    <label asp-for="NewClass.StudentCount"></label>
-                    <input asp-for="NewClass.StudentCount" class="form-control" />
-                    <span asp-validation-for="NewClass.StudentCount" class="text-danger"></span>
-                </div>
+    @* Right Column: Class List, Filter, Pagination *@
+    <div class="col-md-6">
+        <h2>Class List</h2>
 
-                <div class="form-group">
-                    <label asp-for="NewClass.Description"></label>
-                    <textarea asp-for="NewClass.Description" class="form-control"></textarea>
-                    <span asp-validation-for="NewClass.Description" class="text-danger"></span>
-                </div>
+        <form method="get" class="mb-3 d-flex align-items-end">
+             <div class="flex-grow-1 me-2">
+                <label asp-for="SearchString" class="visually-hidden">Filter by Class Name</label>
+                <input type="text" asp-for="SearchString" class="form-control" placeholder="Filter by Class Name..." />
+             </div>
+             <button type="submit" class="btn btn-primary me-2">Filter</button> 
+             <a asp-page="./Index" class="btn btn-danger">Clear</a>
+        </form>
 
-                <button type="submit" asp-page-handler="Add" class="btn btn-primary">
-                    @(Model.EditId == 0 ? "Add Class" : "Update Class")
-                </button>
-            </form>
-        </div>
-
-        <div class="col-md-6">
-            <h2>Class List</h2>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Class Name</th>
-                        <th>Student Count</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.Classes)
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                 <tr>
+                    <th>Class Name</th>
+                    <th>Student Count</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.DisplayClasses.Any())
+                {
+                    @foreach (var item in Model.DisplayClasses)
                     {
                         <tr>
-                            <td>@item.Id</td>
                             <td>@item.ClassName</td>
                             <td>@item.StudentCount</td>
                             <td>@item.Description</td>
                             <td>
-                                <a asp-page="./Index" asp-route-editId="@item.Id" class="btn btn-sm btn-warning">
+                                <a asp-page="./Index"
+                                   asp-route-editId="@item.Id"
+                                   asp-route-currentPage="@Model.CurrentPage"
+                                   asp-route-searchString="@Model.SearchString"
+                                   class="btn btn-sm btn-warning me-1">
                                     <img src="/images/pencil-solid.svg" alt="Edit"
-                                        style="width: 1.2em; vertical-align: middle;" />
+                                         style="width: 1.2em; vertical-align: middle;" />
                                 </a>
-                                @* **AI** i want to add a pencil icon for edit button instead of the text "edit".
-                                i also want to add a trash can icon for the delete button in the same way. 
-                                how should i implement these two into this code?  *@
                                 <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id"
-                                    style="display: inline-block;">
-                                    <button type="submit" class="btn btn-sm btn-danger">
+                                      style="display: inline-block;">
+                                      <input type="hidden" name="currentPage" value="@Model.CurrentPage" />
+                                      <input type="hidden" name="searchString" value="@Model.SearchString" />
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Are you sure you want to delete this class?');">
                                         <img src="/images/trash-solid.svg" alt="Delete"
-                                            style="width: 1.2em; vertical-align: middle;" />
+                                             style="width: 1.2em; vertical-align: middle;" />
                                     </button>
                                 </form>
                             </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center">No classes found matching your criteria.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+         @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center flex-wrap">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-page="./Index" asp-route-currentPage="@(Model.CurrentPage - 1)" asp-route-searchString="@Model.SearchString">Previous</a>
+                    </li>
+                    @{
+                        int startPage = Math.Max(1, Model.CurrentPage - 2);
+                        int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                        if (startPage > 1) {
+                             <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="1" asp-route-searchString="@Model.SearchString">1</a></li>
+                            if (startPage > 2) { <li class="page-item disabled"><span class="page-link">...</span></li> }
+                        }
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-page="./Index" asp-route-currentPage="@i" asp-route-searchString="@Model.SearchString">@i</a>
+                            </li>
+                        }
+                         if (endPage < Model.TotalPages) {
+                            if (endPage < Model.TotalPages - 1) { <li class="page-item disabled"><span class="page-link">...</span></li> }
+                            <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="@Model.TotalPages" asp-route-searchString="@Model.SearchString">@Model.TotalPages</a></li>
+                        }
+                    }
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link" asp-page="./Index" asp-route-currentPage="@(Model.CurrentPage + 1)" asp-route-searchString="@Model.SearchString">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="text-center">
+                 Page @Model.CurrentPage of @Model.TotalPages (Total Items: @Model.TotalCount)
+            </div>
+        }
+         else if (Model.TotalCount > 0)
+         {
+             <div class="text-center">
+                 Total Items: @Model.TotalCount
+             </div>
+         }
+
     </div>
 </div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

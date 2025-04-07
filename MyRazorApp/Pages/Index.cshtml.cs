@@ -29,75 +29,214 @@
 // • Form validation should be done using C# attributes like [Required], [Range], etc.
 // • When editing, pre-fill the form with the selected item's data.
 // • After deletion or editing, refresh the page and update the table accordingly.
+
+// **AI** these are the codes for my razor page. i have id, class name, student count, description and edit/delete features as icons, also add and update class features. 
+// you need to add the following new features without changing the already existing features.
+// now i want to add filtering and pagination features. filtering will be done on the data list in the backend and will be written inside of OnGet methods.
+// you will also create a new model class called ClassInformationTable. This model will store
+// the filtered version of your main model and will be used to display data in the table. In this
+// model, the ID should not be shown in the table, but the ID will still be used in the
+// background for actions like edit, delete, or details.
+// in addition to filtering, you are required to implement pagination. To properly test the
+// pagination feature, you need to generate synthetic data. Make sure to create a list with at
+// least 100 sample records so you can see how the pagination works across multiple pages.
+// Tip: When a filter value changes, the form should submit automatically or the user should click a
+// "Filter" button. This will trigger the OnGet method with the selected filter values passed as
+// query parameters.
+// give the updated codes according to the file names i have given you.
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
 using MyRazorApp.Models;
+using System; 
 
 namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
-        private static List<ClassInformationModel> classes = new List<ClassInformationModel>();
-        private static int nextId = 1;
+        private static List<ClassInformationModel> _classes = new List<ClassInformationModel>();
+        private static int _nextId = 1;
+
+        private const int PageSize = 5; 
+
+        static IndexModel()
+        {
+            GenerateSyntheticData(100); 
+        }
 
         [BindProperty]
-        public ClassInformationModel NewClass { get; set; }
+        public ClassInformationModel NewClass { get; set; } = new ClassInformationModel();
 
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public int EditId { get; set; }
 
-        public List<ClassInformationModel> Classes => classes;
+        [BindProperty(SupportsGet = true)]
+        public string? SearchString { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; private set; }
+        public int TotalCount { get; private set; }
+
+        public List<ClassInformationTable> DisplayClasses { get; private set; } = new List<ClassInformationTable>();
+
+        private static void GenerateSyntheticData(int count)
+        {
+            if (_classes.Any()) return;
+
+            var random = new Random();
+            var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
+            var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
+
+            for (int i = 0; i < count; i++)
+            {
+                _classes.Add(new ClassInformationModel
+                {
+                    Id = _nextId++,
+                    ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
+                    StudentCount = random.Next(10, 51),
+                    Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
+                });
+            }
+        }
 
         public void OnGet(int? editId)
         {
             if (editId.HasValue)
             {
-                var classToEdit = classes.FirstOrDefault(c => c.Id == editId.Value);
+                var classToEdit = _classes.FirstOrDefault(c => c.Id == editId.Value);
                 if (classToEdit != null)
                 {
-                    NewClass = classToEdit;
+                    NewClass = new ClassInformationModel
+                    {
+                        Id = classToEdit.Id,
+                        ClassName = classToEdit.ClassName,
+                        StudentCount = classToEdit.StudentCount,
+                        Description = classToEdit.Description
+                    };
                     EditId = editId.Value;
                 }
+                else
+                {
+                    EditId = 0;
+                    NewClass = new ClassInformationModel();
+                }
             }
+            else
+            {
+                if (!ModelState.IsValid)
+                {
+                    // Keep NewClass from failed POST
+                }
+                else
+                {
+                    EditId = 0;
+                }
+            }
+
+            IQueryable<ClassInformationModel> query = _classes.AsQueryable();
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                query = query.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+            }
+
+            TotalCount = query.Count();
+            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize); 
+
+            if (CurrentPage < 1) CurrentPage = 1;
+            if (CurrentPage > TotalPages && TotalPages > 0) CurrentPage = TotalPages;
+
+            // Pagination automatically uses new PageSize
+            var paginatedData = query.Skip((CurrentPage - 1) * PageSize)
+                                     .Take(PageSize)
+                                     .ToList();
+
+            DisplayClasses = paginatedData.Select(c => new ClassInformationTable
+            {
+                Id = c.Id,
+                ClassName = c.ClassName,
+                StudentCount = c.StudentCount,
+                Description = c.Description
+            }).ToList();
         }
 
         public IActionResult OnPostAdd()
         {
-            if (!ModelState.IsValid)
+            if (int.TryParse(Request.Form["EditId"], out int postedEditId))
             {
-                return Page();
-            }
-
-            if (EditId == 0)
-            {
-                NewClass.Id = nextId++;
-                classes.Add(NewClass);
+                EditId = postedEditId;
             }
             else
             {
-                var existingClass = classes.FirstOrDefault(c => c.Id == EditId);
+                EditId = 0;
+            }
+
+            bool isUpdate = EditId != 0;
+
+            if (!ModelState.IsValid)
+            {
+                OnGet(isUpdate ? EditId : (int?)null);
+                return Page();
+            }
+
+            if (!isUpdate)
+            {
+                NewClass.Id = _nextId++;
+                _classes.Add(new ClassInformationModel
+                {
+                    Id = NewClass.Id,
+                    ClassName = NewClass.ClassName,
+                    StudentCount = NewClass.StudentCount,
+                    Description = NewClass.Description
+                });
+            }
+            else
+            {
+                var existingClass = _classes.FirstOrDefault(c => c.Id == EditId);
                 if (existingClass != null)
                 {
                     existingClass.ClassName = NewClass.ClassName;
                     existingClass.StudentCount = NewClass.StudentCount;
                     existingClass.Description = NewClass.Description;
                 }
+                else
+                {
+                    return RedirectToPage(new { currentPage = CurrentPage, searchString = SearchString });
+                }
             }
 
-            return RedirectToPage();
+            int targetPage = isUpdate ? CurrentPage : (int)Math.Ceiling(_classes.Count / (double)PageSize);
+            if (targetPage == 0) targetPage = 1;
+
+            return RedirectToPage(new { currentPage = targetPage, searchString = SearchString });
         }
 
         public IActionResult OnPostDelete(int id)
         {
-            var classToRemove = classes.FirstOrDefault(c => c.Id == id);
+            var classToRemove = _classes.FirstOrDefault(c => c.Id == id);
             if (classToRemove != null)
             {
-                classes.Remove(classToRemove);
+                _classes.Remove(classToRemove);
             }
 
-            return RedirectToPage();
+            // Recalculate total count after potential filtering
+            TotalCount = _classes.Count(c => string.IsNullOrEmpty(SearchString) || c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+            // TotalPages calculation automatically uses new PageSize
+            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
+            if (CurrentPage > TotalPages && TotalPages > 0)
+            {
+                CurrentPage = TotalPages;
+            }
+            else if (TotalPages == 0)
+            {
+                CurrentPage = 1;
+            }
+
+            return RedirectToPage(new { currentPage = CurrentPage, searchString = SearchString });
         }
     }
 }
+

@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\USER\\Desktop\\Ceng382_25-26_202111043-week5\\Ceng382_25-26_202111043-week5\\MyRazorApp\\MyRazorApp.csproj",
+      "projectUniqueName": "C:\\Users\\USER\\Desktop\\week6-ceng382-funsies\\MyRazorApp\\MyRazorApp.csproj",
       "projectName": "MyRazorApp",
-      "projectPath": "C:\\Users\\USER\\Desktop\\Ceng382_25-26_202111043-week5\\Ceng382_25-26_202111043-week5\\MyRazorApp\\MyRazorApp.csproj",
+      "projectPath": "C:\\Users\\USER\\Desktop\\week6-ceng382-funsies\\MyRazorApp\\MyRazorApp.csproj",
       "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\USER\\Desktop\\Ceng382_25-26_202111043-week5\\Ceng382_25-26_202111043-week5\\MyRazorApp\\obj\\",
+      "outputPath": "C:\\Users\\USER\\Desktop\\week6-ceng382-funsies\\MyRazorApp\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",

@@ -27,8 +27,7 @@ form div {
 }
 
 input,
-textarea,
-button {
+textarea {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
@@ -36,6 +35,9 @@ button {
 }
 
 button {
+  padding: 8px;
+  margin-top: 5px;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -45,8 +47,8 @@ button {
   justify-content: center;
 }
 
-button:hover {
-  background-color: #45a049;
+button:hover,
+a.btn:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -116,7 +118,7 @@ a {
 }
 
 .nav-pills .nav-link.active,
-.nav-pills .show > .nav-link {
+.nav-pills .show>.nav-link {
   color: #fff;
   background-color: #1b6ec2;
   border-color: #1861ac;
