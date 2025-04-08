@@ -55,7 +55,6 @@ give the updated codes according to the file names i have given you. *@
 
     @* Left Column: Add/Edit Form *@
     <div class="col-md-6">
-        @* (Add/Edit form remains the same) *@
         <h2>@(Model.EditId == 0 ? "Add New Class" : "Edit Class")</h2>
         <form method="post">
             <input type="hidden" asp-for="EditId" />
@@ -85,25 +84,36 @@ give the updated codes according to the file names i have given you. *@
         </form>
     </div>
 
-    @* Right Column: Class List, Filter, Pagination *@
+    @* Right Column: Class List, Filter, Pagination, and Export *@
     <div class="col-md-6">
         <h2>Class List</h2>
 
+        @if (TempData["ExportMessage"] != null)
+        {
+            <div class="alert alert-info">@TempData["ExportMessage"]</div>
+        }
+
         <form method="get" class="mb-3 d-flex align-items-end">
-             <div class="flex-grow-1 me-2">
+            <div class="flex-grow-1 me-2">
                 <label asp-for="SearchString" class="visually-hidden">Filter by Class Name</label>
                 <input type="text" asp-for="SearchString" class="form-control" placeholder="Filter by Class Name..." />
-             </div>
-             <button type="submit" class="btn btn-primary me-2">Filter</button> 
-             <a asp-page="./Index" class="btn btn-danger">Clear</a>
+            </div>
+            <button type="submit" class="btn btn-primary me-2">Filter</button>
+            <a asp-page="./Index" class="btn btn-danger me-2">Clear</a>
+        </form>
+
+        <form method="post" class="mb-3">
+            <input type="hidden" id="selectedColumns" name="selectedColumns" value="" />
+            <button type="submit" asp-page-handler="ExportJson" class="btn btn-success">Export JSON</button>
         </form>
 
         <table class="table table-striped table-bordered">
             <thead class="thead-dark">
-                 <tr>
-                    <th>Class Name</th>
-                    <th>Student Count</th>
-                    <th>Description</th>
+                <tr>
+                    <th style="display:none;" data-column="Id">ID</th>
+                    <th data-column="ClassName" class="column-selector">Class Name</th>
+                    <th data-column="StudentCount" class="column-selector">Student Count</th>
+                    <th data-column="Description" class="column-selector">Description</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -113,9 +123,10 @@ give the updated codes according to the file names i have given you. *@
                     @foreach (var item in Model.DisplayClasses)
                     {
                         <tr>
-                            <td>@item.ClassName</td>
-                            <td>@item.StudentCount</td>
-                            <td>@item.Description</td>
+                            <td style="display:none;" data-column="Id">@item.Id</td>
+                            <td data-column="ClassName">@item.ClassName</td>
+                            <td data-column="StudentCount">@item.StudentCount</td>
+                            <td data-column="Description">@item.Description</td>
                             <td>
                                 <a asp-page="./Index"
                                    asp-route-editId="@item.Id"
@@ -127,8 +138,8 @@ give the updated codes according to the file names i have given you. *@
                                 </a>
                                 <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id"
                                       style="display: inline-block;">
-                                      <input type="hidden" name="currentPage" value="@Model.CurrentPage" />
-                                      <input type="hidden" name="searchString" value="@Model.SearchString" />
+                                    <input type="hidden" name="currentPage" value="@Model.CurrentPage" />
+                                    <input type="hidden" name="searchString" value="@Model.SearchString" />
                                     <button type="submit" class="btn btn-sm btn-danger"
                                             onclick="return confirm('Are you sure you want to delete this class?');">
                                         <img src="/images/trash-solid.svg" alt="Delete"
@@ -142,12 +153,12 @@ give the updated codes according to the file names i have given you. *@
                 else
                 {
                     <tr>
-                        <td colspan="4" class="text-center">No classes found matching your criteria.</td>
+                        <td colspan="5" class="text-center">No classes found matching your criteria.</td>
                     </tr>
                 }
             </tbody>
         </table>
-         @if (Model.TotalPages > 1)
+        @if (Model.TotalPages > 1)
         {
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center flex-wrap">
@@ -158,7 +169,7 @@ give the updated codes according to the file names i have given you. *@
                         int startPage = Math.Max(1, Model.CurrentPage - 2);
                         int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
                         if (startPage > 1) {
-                             <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="1" asp-route-searchString="@Model.SearchString">1</a></li>
+                            <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="1" asp-route-searchString="@Model.SearchString">1</a></li>
                             if (startPage > 2) { <li class="page-item disabled"><span class="page-link">...</span></li> }
                         }
                         for (int i = startPage; i <= endPage; i++)
@@ -167,7 +178,7 @@ give the updated codes according to the file names i have given you. *@
                                 <a class="page-link" asp-page="./Index" asp-route-currentPage="@i" asp-route-searchString="@Model.SearchString">@i</a>
                             </li>
                         }
-                         if (endPage < Model.TotalPages) {
+                        if (endPage < Model.TotalPages) {
                             if (endPage < Model.TotalPages - 1) { <li class="page-item disabled"><span class="page-link">...</span></li> }
                             <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="@Model.TotalPages" asp-route-searchString="@Model.SearchString">@Model.TotalPages</a></li>
                         }
@@ -178,19 +189,71 @@ give the updated codes according to the file names i have given you. *@
                 </ul>
             </nav>
             <div class="text-center">
-                 Page @Model.CurrentPage of @Model.TotalPages (Total Items: @Model.TotalCount)
+                Page @Model.CurrentPage of @Model.TotalPages (Total Items: @Model.TotalCount)
             </div>
         }
-         else if (Model.TotalCount > 0)
-         {
-             <div class="text-center">
-                 Total Items: @Model.TotalCount
-             </div>
-         }
+        else if (Model.TotalCount > 0)
+        {
+            <div class="text-center">
+                Total Items: @Model.TotalCount
+            </div>
+        }
 
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .selected-column,
+        .selected-column th,
+        .selected-column td {
+    background-color: lightblue !important;
+}
+    </style>
+}
+
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const columnSelectors = document.querySelectorAll('th.column-selector');
+            const selectedColumnsInput = document.getElementById('selectedColumns');
+            let selectedColumns = new Set();
+
+            // Function to highlight a column
+            function highlightColumn(column, shouldHighlight) {
+                const columnIndex = Array.from(document.querySelectorAll('th')).findIndex(th => th.dataset.column === column);
+                if (columnIndex === -1) return; // Column not found
+
+                const table = document.querySelector('table');
+                if (!table) return;
+
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td, th');
+                    if (cells[columnIndex]) {
+                        if (shouldHighlight) {
+                            cells[columnIndex].classList.add('selected-column');
+                        } else {
+                            cells[columnIndex].classList.remove('selected-column');
+                        }
+                    }
+                });
+            }
+
+            columnSelectors.forEach(th => {
+                th.addEventListener('click', function () {
+                    const column = this.dataset.column;
+                    if (selectedColumns.has(column)) {
+                        selectedColumns.delete(column);
+                        highlightColumn(column, false);
+                    } else {
+                        selectedColumns.add(column);
+                        highlightColumn(column, true);
+                    }
+                    selectedColumnsInput.value = Array.from(selectedColumns).join(',');
+                });
+            });
+        });
+    </script>
 }

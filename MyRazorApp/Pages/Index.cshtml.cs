@@ -50,7 +50,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
 using MyRazorApp.Models;
-using System; 
+using System;
+using MyRazorApp.Helpers;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace MyRazorApp.Pages
 {
@@ -59,11 +62,17 @@ namespace MyRazorApp.Pages
         private static List<ClassInformationModel> _classes = new List<ClassInformationModel>();
         private static int _nextId = 1;
 
-        private const int PageSize = 5; 
+        private const int PageSize = 5;
+        private readonly IWebHostEnvironment _environment;
+
+        public IndexModel(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
 
         static IndexModel()
         {
-            GenerateSyntheticData(100); 
+            GenerateSyntheticData(100);
         }
 
         [BindProperty]
@@ -104,6 +113,31 @@ namespace MyRazorApp.Pages
 
         public void OnGet(int? editId)
         {
+            IQueryable<ClassInformationModel> query = _classes.AsQueryable();
+
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                query = query.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+            }
+
+            TotalCount = query.Count();
+            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
+
+            if (CurrentPage < 1) CurrentPage = 1;
+            if (CurrentPage > TotalPages && TotalPages > 0) CurrentPage = TotalPages;
+
+            var paginatedData = query.Skip((CurrentPage - 1) * PageSize)
+                                     .Take(PageSize)
+                                     .ToList();
+
+            DisplayClasses = paginatedData.Select(c => new ClassInformationTable
+            {
+                Id = c.Id,
+                ClassName = c.ClassName,
+                StudentCount = c.StudentCount,
+                Description = c.Description
+            }).ToList();
+
             if (editId.HasValue)
             {
                 var classToEdit = _classes.FirstOrDefault(c => c.Id == editId.Value);
@@ -124,43 +158,6 @@ namespace MyRazorApp.Pages
                     NewClass = new ClassInformationModel();
                 }
             }
-            else
-            {
-                if (!ModelState.IsValid)
-                {
-                    // Keep NewClass from failed POST
-                }
-                else
-                {
-                    EditId = 0;
-                }
-            }
-
-            IQueryable<ClassInformationModel> query = _classes.AsQueryable();
-
-            if (!string.IsNullOrEmpty(SearchString))
-            {
-                query = query.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
-            }
-
-            TotalCount = query.Count();
-            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize); 
-
-            if (CurrentPage < 1) CurrentPage = 1;
-            if (CurrentPage > TotalPages && TotalPages > 0) CurrentPage = TotalPages;
-
-            // Pagination automatically uses new PageSize
-            var paginatedData = query.Skip((CurrentPage - 1) * PageSize)
-                                     .Take(PageSize)
-                                     .ToList();
-
-            DisplayClasses = paginatedData.Select(c => new ClassInformationTable
-            {
-                Id = c.Id,
-                ClassName = c.ClassName,
-                StudentCount = c.StudentCount,
-                Description = c.Description
-            }).ToList();
         }
 
         public IActionResult OnPostAdd()
@@ -204,14 +201,14 @@ namespace MyRazorApp.Pages
                 }
                 else
                 {
-                    return RedirectToPage(new { currentPage = CurrentPage, searchString = SearchString });
+                    return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
                 }
             }
 
             int targetPage = isUpdate ? CurrentPage : (int)Math.Ceiling(_classes.Count / (double)PageSize);
             if (targetPage == 0) targetPage = 1;
 
-            return RedirectToPage(new { currentPage = targetPage, searchString = SearchString });
+            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = targetPage });
         }
 
         public IActionResult OnPostDelete(int id)
@@ -222,21 +219,50 @@ namespace MyRazorApp.Pages
                 _classes.Remove(classToRemove);
             }
 
-            // Recalculate total count after potential filtering
-            TotalCount = _classes.Count(c => string.IsNullOrEmpty(SearchString) || c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
-            // TotalPages calculation automatically uses new PageSize
-            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
-            if (CurrentPage > TotalPages && TotalPages > 0)
+            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
+        }
+
+        public IActionResult OnPostExportJson(string selectedColumns)
+        {
+            List<string> columnsToExport = string.IsNullOrEmpty(selectedColumns)
+                ? null
+                : selectedColumns.Split(',').ToList();
+
+            // Select only the desired columns from DisplayClasses
+            var exportData = DisplayClasses.Select(item =>
             {
-                CurrentPage = TotalPages;
-            }
-            else if (TotalPages == 0)
+                var exportItem = new Dictionary<string, object>();
+                if (columnsToExport == null || columnsToExport.Contains("ClassName")) exportItem["ClassName"] = item.ClassName;
+                if (columnsToExport == null || columnsToExport.Contains("StudentCount")) exportItem["StudentCount"] = item.StudentCount;
+                if (columnsToExport == null || columnsToExport.Contains("Description")) exportItem["Description"] = item.Description;
+                return exportItem;
+            }).ToList();
+
+            string json = Utils.Instance.ExportToJson(exportData);
+
+            // Determine the file path
+            string fileName = $"classes_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            string filePath = Path.Combine(_environment.ContentRootPath, "JSONs", fileName);
+
+            // Ensure the directory exists
+            string directoryPath = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directoryPath))
             {
-                CurrentPage = 1;
+                Directory.CreateDirectory(directoryPath);
             }
 
-            return RedirectToPage(new { currentPage = CurrentPage, searchString = SearchString });
+            // Write the JSON to the file
+            try
+            {
+                System.IO.File.WriteAllText(filePath, json);
+                TempData["ExportMessage"] = $"JSON file successfully exported to: {filePath}";
+            }
+            catch (Exception ex)
+            {
+                TempData["ExportMessage"] = $"Error exporting JSON: {ex.Message}";
+            }
+
+            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
         }
     }
 }
-
