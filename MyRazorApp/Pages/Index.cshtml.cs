@@ -54,6 +54,7 @@ using System;
 using MyRazorApp.Helpers;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using System.Text.Json;
 
 namespace MyRazorApp.Pages
 {
@@ -228,8 +229,16 @@ namespace MyRazorApp.Pages
                 ? null
                 : selectedColumns.Split(',').ToList();
 
-            // Select only the desired columns from DisplayClasses
-            var exportData = DisplayClasses.Select(item =>
+            // Apply the current filter to the original _classes list
+            IQueryable<ClassInformationModel> filteredQuery = _classes.AsQueryable();
+            if (!string.IsNullOrEmpty(SearchString))
+            {
+                filteredQuery = filteredQuery.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+            }
+            List<ClassInformationModel> filteredData = filteredQuery.ToList();
+
+            // Select only the desired columns from the filtered data
+            var exportData = filteredData.Select(item =>
             {
                 var exportItem = new Dictionary<string, object>();
                 if (columnsToExport == null || columnsToExport.Contains("ClassName")) exportItem["ClassName"] = item.ClassName;
@@ -238,7 +247,7 @@ namespace MyRazorApp.Pages
                 return exportItem;
             }).ToList();
 
-            string json = Utils.Instance.ExportToJson(exportData);
+            string json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions { WriteIndented = true });
 
             // Determine the file path
             string fileName = $"classes_{DateTime.Now:yyyyMMdd_HHmmss}.json";

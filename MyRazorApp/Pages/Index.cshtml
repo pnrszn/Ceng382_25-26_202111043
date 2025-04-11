@@ -45,6 +45,48 @@ Tip: When a filter value changes, the form should submit automatically or the us
 query parameters.
 give the updated codes according to the file names i have given you. *@
 
+@* **AI** these are my codes. now add the following new features based on the requirements and according to the files names i have given you. 
+if needed in the requirements, you can generate new files:
+Add a new button to export the data to JSON. There should be two modes:
+o Unfiltered export (exports the entire data)
+o Filtered export (exports only the currently filtered rows)
+• Also add the ability to select specific columns for export:
+o If no column is selected, export all columns.
+o If certain columns (e.g., 1st and 4th) are selected, export only those columns.
+o The selected columns should visually change color to indicate selection.
+o The exported JSON should contain only the selected column data.
+4. Utility Class for JSON Export
+• Create a new C# class file named Utils.cs.
+• Inside it, implement a generic method that can export any class to JSON.
+• The method should work with any model class.
+• This class must be implemented as a singleton, so it can be accessed from anywhere in the project.
+5. Folder Structure Reminder (MVP)
+Since your project follows the MVP structure in a Razor Pages application:
+• Place the ClassInformationTable and related data models in the Models folder.
+• Place the Utils.cs class in a separate folder called Helpers or Utilities.
+• Place pagination logic, filtering logic, and UI-related code in the appropriate Pages folder. *@
+
+@* **AI** no need for seperate buttons for selecting the columns, selecting the column should be directly 
+on the already existing class list. if a column is selected on the table, it should be highlighted. 
+also, id property should not be seen on the frontend in the table, it is just for backend processes. *@
+
+@* **AI** there wont be 2 seperate export features, just one export button. filtering and selecting columns
+are two seperate features. filtering is done with the filter bar, and selecting the column is done by 
+clicking one or more of the properties on the table(class name, student count, description). 
+for example, if i enter "Literature" on the filtering bar and click filter, and select the 
+"class name" column, the exported json file should contain only the "Literature" related class names. *@
+
+@* **AI** the whole column should be highlighted when i select the column, and exportation should be done 
+according to the selected/highlighted columns. default appearance of the table is all white, 
+so when a column is selected, the whole column should be highlighted as blue. *@
+
+@* **AI** also, the export button shouldnt download the json file. 
+instead, the json file's content should be written in a folder named "JSONs" in the MyRazorApp folder. *@
+
+@* **AI** the export property should take the current table in hand (filtered or unfiltered, selected or unselected columns). 
+and export that data. if "Class 1" is filtered and all columns are selected, 
+exported file should contain all of the class name, student count, description of the classes that contains "Class 1" in them. *@
+
 @page
 @model MyRazorApp.Pages.IndexModel
 @{
@@ -93,17 +135,18 @@ give the updated codes according to the file names i have given you. *@
             <div class="alert alert-info">@TempData["ExportMessage"]</div>
         }
 
-        <form method="get" class="mb-3 d-flex align-items-end">
+        <div class="mb-3 d-flex align-items-end">
             <div class="flex-grow-1 me-2">
                 <label asp-for="SearchString" class="visually-hidden">Filter by Class Name</label>
-                <input type="text" asp-for="SearchString" class="form-control" placeholder="Filter by Class Name..." />
+                <input type="text" asp-for="SearchString" class="form-control" placeholder="Filter by Class Name..."
+                       id="searchInput" /> @* Add an ID to the input *@
             </div>
-            <button type="submit" class="btn btn-primary me-2">Filter</button>
             <a asp-page="./Index" class="btn btn-danger me-2">Clear</a>
-        </form>
+        </div>
 
         <form method="post" class="mb-3">
             <input type="hidden" id="selectedColumns" name="selectedColumns" value="" />
+            <input type="hidden" asp-for="SearchString" />
             <button type="submit" asp-page-handler="ExportJson" class="btn btn-success">Export JSON</button>
         </form>
 
@@ -216,14 +259,25 @@ give the updated codes according to the file names i have given you. *@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
             const columnSelectors = document.querySelectorAll('th.column-selector');
             const selectedColumnsInput = document.getElementById('selectedColumns');
             let selectedColumns = new Set();
+            let typingTimer;
+            const doneTypingInterval = 800; 
 
-            // Function to highlight a column
+            searchInput.addEventListener('input', function () {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(doneTyping, doneTypingInterval);
+            });
+
+            function doneTyping() {
+                window.location.href = '?SearchString=' + encodeURIComponent(searchInput.value);
+            }
+
             function highlightColumn(column, shouldHighlight) {
                 const columnIndex = Array.from(document.querySelectorAll('th')).findIndex(th => th.dataset.column === column);
-                if (columnIndex === -1) return; // Column not found
+                if (columnIndex === -1) return;
 
                 const table = document.querySelector('table');
                 if (!table) return;
