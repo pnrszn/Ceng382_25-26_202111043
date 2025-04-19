@@ -45,13 +45,13 @@
 // query parameters.
 // give the updated codes according to the file names i have given you.
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
 using MyRazorApp.Models;
 using System;
-using MyRazorApp.Helpers;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using System.Text.Json;
@@ -65,10 +65,12 @@ namespace MyRazorApp.Pages
 
         private const int PageSize = 5;
         private readonly IWebHostEnvironment _environment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public IndexModel(IWebHostEnvironment environment)
+        public IndexModel(IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor)
         {
             _environment = environment;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         static IndexModel()
@@ -92,28 +94,34 @@ namespace MyRazorApp.Pages
 
         public List<ClassInformationTable> DisplayClasses { get; private set; } = new List<ClassInformationTable>();
 
-        private static void GenerateSyntheticData(int count)
+        public string AccessDeniedMessage { get; set; }
+
+        private bool IsLoggedIn()
         {
-            if (_classes.Any()) return;
+            var sessionUsername = HttpContext.Session.GetString("username");
+            var sessionToken = HttpContext.Session.GetString("token");
+            var sessionSessionId = HttpContext.Session.GetString("session_id");
 
-            var random = new Random();
-            var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
-            var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
+            var cookieUsername = Request.Cookies["username"];
+            var cookieToken = Request.Cookies["token"];
+            var cookieSessionId = Request.Cookies["session_id"];
 
-            for (int i = 0; i < count; i++)
-            {
-                _classes.Add(new ClassInformationModel
-                {
-                    Id = _nextId++,
-                    ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
-                    StudentCount = random.Next(10, 51),
-                    Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
-                });
-            }
+            return !string.IsNullOrEmpty(sessionUsername) &&
+                   !string.IsNullOrEmpty(sessionToken) &&
+                   !string.IsNullOrEmpty(sessionSessionId) &&
+                   sessionUsername == cookieUsername &&
+                   sessionToken == cookieToken &&
+                   sessionSessionId == cookieSessionId;
         }
 
-        public void OnGet(int? editId)
+        public IActionResult OnGet(int? editId)
         {
+            if (!IsLoggedIn())
+            {
+                AccessDeniedMessage = "You must be logged in to access this page.";
+                return RedirectToPage("./Login");
+            }
+
             IQueryable<ClassInformationModel> query = _classes.AsQueryable();
 
             if (!string.IsNullOrEmpty(SearchString))
@@ -159,10 +167,15 @@ namespace MyRazorApp.Pages
                     NewClass = new ClassInformationModel();
                 }
             }
+            return Page();
         }
 
         public IActionResult OnPostAdd()
         {
+            if (!IsLoggedIn())
+            {
+                return RedirectToPage("./Login");
+            }
             if (int.TryParse(Request.Form["EditId"], out int postedEditId))
             {
                 EditId = postedEditId;
@@ -214,6 +227,10 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnPostDelete(int id)
         {
+            if (!IsLoggedIn())
+            {
+                return RedirectToPage("./Login");
+            }
             var classToRemove = _classes.FirstOrDefault(c => c.Id == id);
             if (classToRemove != null)
             {
@@ -225,6 +242,10 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnPostExportJson(string selectedColumns)
         {
+            if (!IsLoggedIn())
+            {
+                return RedirectToPage("./Login");
+            }
             List<string> columnsToExport = string.IsNullOrEmpty(selectedColumns)
                 ? null
                 : selectedColumns.Split(',').ToList();
@@ -272,6 +293,26 @@ namespace MyRazorApp.Pages
             }
 
             return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
+        }
+
+        private static void GenerateSyntheticData(int count)
+        {
+            if (_classes.Any()) return;
+
+            var random = new Random();
+            var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
+            var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
+
+            for (int i = 0; i < count; i++)
+            {
+                _classes.Add(new ClassInformationModel
+                {
+                    Id = _nextId++,
+                    ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
+                    StudentCount = random.Next(10, 51),
+                    Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
+                });
+            }
         }
     }
 }
