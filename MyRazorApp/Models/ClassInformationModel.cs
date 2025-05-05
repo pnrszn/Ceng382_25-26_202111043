@@ -58,7 +58,7 @@ namespace MyRazorApp.Models
         [Required(ErrorMessage = "Student Count is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "Student Count must be greater than 0.")]
         public int StudentCount { get; set; }
-
         public string Description { get; set; }
+        public bool IsActive {get; set;}
     }
 }

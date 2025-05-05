@@ -45,6 +45,15 @@
 // query parameters.
 // give the updated codes according to the file names i have given you.
 
+// **AI** (given labwork 9 tasks and previous week's codes) where and how should i integrate these codes?
+
+// **AI** i want to connect this razor project to database. how can i do that?
+
+// **AI** i want deleted classes to remain in the database with IsActive=0. but not be visible in the list. only classes with IsActive=1 should be visible in the list. 
+// make sure all remaining functionalities work exactly the same.
+
+// **AI** i have removed the IsActive checkbox. can you make it so IsActive is automatically set to 1 when a new class is created?
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -55,46 +64,21 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using System.Text.Json;
+using MyRazorApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
-        private static List<ClassInformationModel> _classes = new List<ClassInformationModel>();
-        private static int _nextId = 1;
-
         private const int PageSize = 5;
+        private readonly SchoolDbContext _context;
         private readonly IWebHostEnvironment _environment;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public IndexModel(IWebHostEnvironment environment, IHttpContextAccessor httpContextAccessor)
+        public IndexModel(SchoolDbContext context, IWebHostEnvironment environment)
         {
+            _context = context;
             _environment = environment;
-            _httpContextAccessor = httpContextAccessor;
         }
-
-        static IndexModel()
-        {
-            GenerateSyntheticData(100);
-        }
-
-        [BindProperty]
-        public ClassInformationModel NewClass { get; set; } = new ClassInformationModel();
-
-        [BindProperty(SupportsGet = true)]
-        public int EditId { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string? SearchString { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public int CurrentPage { get; set; } = 1;
-        public int TotalPages { get; private set; }
-        public int TotalCount { get; private set; }
-
-        public List<ClassInformationTable> DisplayClasses { get; private set; } = new List<ClassInformationTable>();
-
-        public string AccessDeniedMessage { get; set; }
 
         private bool IsLoggedIn()
         {
@@ -114,174 +98,140 @@ namespace MyRazorApp.Pages
                    sessionSessionId == cookieSessionId;
         }
 
-        public IActionResult OnGet(int? editId)
+        [BindProperty]
+        public Class NewClass { get; set; } = new Class();
+
+        [BindProperty(SupportsGet = true)]
+        public int EditId { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchString { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; private set; }
+        public int TotalCount { get; private set; }
+
+        public IList<Class> ClassList { get; set; } = new List<Class>();
+
+        public async Task<IActionResult> OnGetAsync()
         {
             if (!IsLoggedIn())
             {
-                AccessDeniedMessage = "You must be logged in to access this page.";
                 return RedirectToPage("./Login");
             }
 
-            IQueryable<ClassInformationModel> query = _classes.AsQueryable();
+            IQueryable<Class> query = _context.Classes.Where(c => c.IsActive);
 
             if (!string.IsNullOrEmpty(SearchString))
             {
-                query = query.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(c => c.ClassName.Contains(SearchString));
             }
 
-            TotalCount = query.Count();
+            TotalCount = await query.CountAsync();
             TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
 
-            if (CurrentPage < 1) CurrentPage = 1;
-            if (CurrentPage > TotalPages && TotalPages > 0) CurrentPage = TotalPages;
+            TotalPages = Math.Max(1, TotalPages);
 
-            var paginatedData = query.Skip((CurrentPage - 1) * PageSize)
-                                     .Take(PageSize)
-                                     .ToList();
+            CurrentPage = Math.Clamp(CurrentPage, 1, TotalPages);
 
-            DisplayClasses = paginatedData.Select(c => new ClassInformationTable
-            {
-                Id = c.Id,
-                ClassName = c.ClassName,
-                StudentCount = c.StudentCount,
-                Description = c.Description
-            }).ToList();
+            ClassList = await query
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
 
-            if (editId.HasValue)
-            {
-                var classToEdit = _classes.FirstOrDefault(c => c.Id == editId.Value);
-                if (classToEdit != null)
-                {
-                    NewClass = new ClassInformationModel
-                    {
-                        Id = classToEdit.Id,
-                        ClassName = classToEdit.ClassName,
-                        StudentCount = classToEdit.StudentCount,
-                        Description = classToEdit.Description
-                    };
-                    EditId = editId.Value;
-                }
-                else
-                {
-                    EditId = 0;
-                    NewClass = new ClassInformationModel();
-                }
-            }
             return Page();
         }
 
-        public IActionResult OnPostAdd()
+        public async Task<IActionResult> OnPostAddAsync()
         {
             if (!IsLoggedIn())
             {
                 return RedirectToPage("./Login");
             }
-            if (int.TryParse(Request.Form["EditId"], out int postedEditId))
-            {
-                EditId = postedEditId;
-            }
-            else
-            {
-                EditId = 0;
-            }
-
-            bool isUpdate = EditId != 0;
 
             if (!ModelState.IsValid)
             {
-                OnGet(isUpdate ? EditId : (int?)null);
+                await OnGetAsync();
                 return Page();
             }
 
-            if (!isUpdate)
+            if (EditId != 0)
             {
-                NewClass.Id = _nextId++;
-                _classes.Add(new ClassInformationModel
-                {
-                    Id = NewClass.Id,
-                    ClassName = NewClass.ClassName,
-                    StudentCount = NewClass.StudentCount,
-                    Description = NewClass.Description
-                });
-            }
-            else
-            {
-                var existingClass = _classes.FirstOrDefault(c => c.Id == EditId);
+                var existingClass = await _context.Classes.FindAsync(EditId);
                 if (existingClass != null)
                 {
                     existingClass.ClassName = NewClass.ClassName;
                     existingClass.StudentCount = NewClass.StudentCount;
                     existingClass.Description = NewClass.Description;
                 }
-                else
-                {
-                    return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
-                }
+            }
+            else
+            {
+                NewClass.IsActive = true;
+                _context.Classes.Add(NewClass);
             }
 
-            int targetPage = isUpdate ? CurrentPage : (int)Math.Ceiling(_classes.Count / (double)PageSize);
-            if (targetPage == 0) targetPage = 1;
+            await _context.SaveChangesAsync();
 
-            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = targetPage });
+            return RedirectToPage("./Index", new { SearchString, CurrentPage });
         }
 
-        public IActionResult OnPostDelete(int id)
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             if (!IsLoggedIn())
             {
                 return RedirectToPage("./Login");
             }
-            var classToRemove = _classes.FirstOrDefault(c => c.Id == id);
-            if (classToRemove != null)
+
+            var classToDelete = await _context.Classes.FindAsync(id);
+            if (classToDelete != null)
             {
-                _classes.Remove(classToRemove);
+                classToDelete.IsActive = false; 
+                await _context.SaveChangesAsync();
             }
 
-            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
+            return RedirectToPage("./Index", new { SearchString, CurrentPage });
         }
 
-        public IActionResult OnPostExportJson(string selectedColumns)
+        public async Task<IActionResult> OnPostExportJson(string selectedColumns)
         {
             if (!IsLoggedIn())
             {
                 return RedirectToPage("./Login");
             }
+
             List<string> columnsToExport = string.IsNullOrEmpty(selectedColumns)
                 ? null
                 : selectedColumns.Split(',').ToList();
 
-            // Apply the current filter to the original _classes list
-            IQueryable<ClassInformationModel> filteredQuery = _classes.AsQueryable();
+            IQueryable<Class> filteredQuery = _context.Classes.Where(c => c.IsActive); 
             if (!string.IsNullOrEmpty(SearchString))
             {
-                filteredQuery = filteredQuery.Where(c => c.ClassName.Contains(SearchString, StringComparison.OrdinalIgnoreCase));
+                filteredQuery = filteredQuery.Where(c => c.ClassName.Contains(SearchString));
             }
-            List<ClassInformationModel> filteredData = filteredQuery.ToList();
 
-            // Select only the desired columns from the filtered data
+            List<Class> filteredData = await filteredQuery.ToListAsync();
+    
             var exportData = filteredData.Select(item =>
             {
                 var exportItem = new Dictionary<string, object>();
-                if (columnsToExport == null || columnsToExport.Contains("ClassName")) exportItem["ClassName"] = item.ClassName;
-                if (columnsToExport == null || columnsToExport.Contains("StudentCount")) exportItem["StudentCount"] = item.StudentCount;
-                if (columnsToExport == null || columnsToExport.Contains("Description")) exportItem["Description"] = item.Description;
+                if (columnsToExport == null || columnsToExport.Contains("ClassName"))
+                    exportItem["ClassName"] = item.ClassName;
+                if (columnsToExport == null || columnsToExport.Contains("StudentCount"))
+                    exportItem["StudentCount"] = item.StudentCount;
+                if (columnsToExport == null || columnsToExport.Contains("Description"))
+                    exportItem["Description"] = item.Description;
                 return exportItem;
             }).ToList();
 
             string json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions { WriteIndented = true });
 
-            // Determine the file path
             string fileName = $"classes_{DateTime.Now:yyyyMMdd_HHmmss}.json";
             string filePath = Path.Combine(_environment.ContentRootPath, "JSONs", fileName);
 
-            // Ensure the directory exists
-            string directoryPath = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-            // Write the JSON to the file
             try
             {
                 System.IO.File.WriteAllText(filePath, json);
@@ -292,27 +242,27 @@ namespace MyRazorApp.Pages
                 TempData["ExportMessage"] = $"Error exporting JSON: {ex.Message}";
             }
 
-            return RedirectToPage("./Index", new { SearchString = SearchString, CurrentPage = CurrentPage });
+            return RedirectToPage("./Index", new { SearchString, CurrentPage });
         }
 
-        private static void GenerateSyntheticData(int count)
-        {
-            if (_classes.Any()) return;
+        // private static void GenerateSyntheticData(int count)
+        // {
+        //     if (_classes.Any()) return;
 
-            var random = new Random();
-            var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
-            var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
+        //     var random = new Random();
+        //     var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
+        //     var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
 
-            for (int i = 0; i < count; i++)
-            {
-                _classes.Add(new ClassInformationModel
-                {
-                    Id = _nextId++,
-                    ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
-                    StudentCount = random.Next(10, 51),
-                    Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
-                });
-            }
-        }
+        //     for (int i = 0; i < count; i++)
+        //     {
+        //         _classes.Add(new ClassInformationModel
+        //         {
+        //             Id = _nextId++,
+        //             ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
+        //             StudentCount = random.Next(10, 51),
+        //             Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
+        //         });
+        //     }
+        // }
     }
 }

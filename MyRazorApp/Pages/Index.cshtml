@@ -219,9 +219,9 @@ and automatically redirect the user to the login page. *@
                 </tr>
             </thead>
             <tbody>
-                @if (Model.DisplayClasses.Any())
+                @if (Model.ClassList.Any())
                 {
-                    @foreach (var item in Model.DisplayClasses)
+                    @foreach (var item in Model.ClassList)
                     {
                         <tr>
                             <td style="display:none;" data-column="Id">@item.Id</td>
@@ -278,7 +278,7 @@ and automatically redirect the user to the login page. *@
                             <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
                                 <a class="page-link" asp-page="./Index" asp-route-currentPage="@i" asp-route-searchString="@Model.SearchString">@i</a>
                             </li>
-                        }
+                            }
                         if (endPage < Model.TotalPages) {
                             if (endPage < Model.TotalPages - 1) { <li class="page-item disabled"><span class="page-link">...</span></li> }
                             <li class="page-item"><a class="page-link" asp-page="./Index" asp-route-currentPage="@Model.TotalPages" asp-route-searchString="@Model.SearchString">@Model.TotalPages</a></li>
@@ -369,5 +369,3 @@ and automatically redirect the user to the login page. *@
         });
     </script>
 }
-
-
