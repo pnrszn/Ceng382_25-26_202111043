@@ -1,16 +1,21 @@
-using System.ComponentModel.DataAnnotations;
+// **AI** i want to add an authentication to this razor page project. 
+//follow these steps (steps provided in the lecture notes) and integrate authentication into my codes. 
+//make sure already-existing functionalities remain working:
+
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace MyRazorApp.Models
 {
     public class Class
     {
-        [Key]
         public int Id { get; set; }
-        [Required]
         public string ClassName { get; set; }
-        [Required]
         public int StudentCount { get; set; }
         public string Description { get; set; }
-        [Required]
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
+
+        [ForeignKey("User")]
+        public string? UserId { get; set; }  
+        public ApplicationUser? User { get; set; }
     }
 }

@@ -66,9 +66,11 @@ using Microsoft.AspNetCore.Hosting;
 using System.Text.Json;
 using MyRazorApp.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MyRazorApp.Pages
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         private const int PageSize = 5;
@@ -78,24 +80,6 @@ namespace MyRazorApp.Pages
         {
             _context = context;
             _environment = environment;
-        }
-
-        private bool IsLoggedIn()
-        {
-            var sessionUsername = HttpContext.Session.GetString("username");
-            var sessionToken = HttpContext.Session.GetString("token");
-            var sessionSessionId = HttpContext.Session.GetString("session_id");
-
-            var cookieUsername = Request.Cookies["username"];
-            var cookieToken = Request.Cookies["token"];
-            var cookieSessionId = Request.Cookies["session_id"];
-
-            return !string.IsNullOrEmpty(sessionUsername) &&
-                   !string.IsNullOrEmpty(sessionToken) &&
-                   !string.IsNullOrEmpty(sessionSessionId) &&
-                   sessionUsername == cookieUsername &&
-                   sessionToken == cookieToken &&
-                   sessionSessionId == cookieSessionId;
         }
 
         [BindProperty]
@@ -116,11 +100,6 @@ namespace MyRazorApp.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            if (!IsLoggedIn())
-            {
-                return RedirectToPage("./Login");
-            }
-
             IQueryable<Class> query = _context.Classes.Where(c => c.IsActive);
 
             if (!string.IsNullOrEmpty(SearchString))
@@ -145,11 +124,6 @@ namespace MyRazorApp.Pages
 
         public async Task<IActionResult> OnPostAddAsync()
         {
-            if (!IsLoggedIn())
-            {
-                return RedirectToPage("./Login");
-            }
-
             if (!ModelState.IsValid)
             {
                 await OnGetAsync();
@@ -179,11 +153,6 @@ namespace MyRazorApp.Pages
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
-            if (!IsLoggedIn())
-            {
-                return RedirectToPage("./Login");
-            }
-
             var classToDelete = await _context.Classes.FindAsync(id);
             if (classToDelete != null)
             {
@@ -196,11 +165,6 @@ namespace MyRazorApp.Pages
 
         public async Task<IActionResult> OnPostExportJson(string selectedColumns)
         {
-            if (!IsLoggedIn())
-            {
-                return RedirectToPage("./Login");
-            }
-
             List<string> columnsToExport = string.IsNullOrEmpty(selectedColumns)
                 ? null
                 : selectedColumns.Split(',').ToList();
@@ -244,25 +208,5 @@ namespace MyRazorApp.Pages
 
             return RedirectToPage("./Index", new { SearchString, CurrentPage });
         }
-
-        // private static void GenerateSyntheticData(int count)
-        // {
-        //     if (_classes.Any()) return;
-
-        //     var random = new Random();
-        //     var classPrefixes = new[] { "Math", "Science", "History", "Art", "Music", "Physics", "Chemistry", "Biology", "Literature", "Geography" };
-        //     var classSuffixes = new[] { "101", "102", "201", "202", "301", "302", "Advanced", "Beginner", "Intermediate", "Workshop" };
-
-        //     for (int i = 0; i < count; i++)
-        //     {
-        //         _classes.Add(new ClassInformationModel
-        //         {
-        //             Id = _nextId++,
-        //             ClassName = $"{classPrefixes[random.Next(classPrefixes.Length)]} {classSuffixes[random.Next(classSuffixes.Length)]} {random.Next(1, 5)}",
-        //             StudentCount = random.Next(10, 51),
-        //             Description = $"Description for class number {i + 1}. Focuses on core concepts and practical applications."
-        //         });
-        //     }
-        // }
     }
 }

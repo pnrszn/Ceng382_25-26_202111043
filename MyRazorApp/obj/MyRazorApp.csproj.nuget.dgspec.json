@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\USER\\Downloads\\mock-main\\mock-main\\MyRazorApp\\MyRazorApp.csproj": {}
+    "C:\\Users\\USER\\Desktop\\week10\\MyRazorApp\\MyRazorApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\USER\\Downloads\\mock-main\\mock-main\\MyRazorApp\\MyRazorApp.csproj": {
+    "C:\\Users\\USER\\Desktop\\week10\\MyRazorApp\\MyRazorApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Downloads\\mock-main\\mock-main\\MyRazorApp\\MyRazorApp.csproj",
+        "projectUniqueName": "C:\\Users\\USER\\Desktop\\week10\\MyRazorApp\\MyRazorApp.csproj",
         "projectName": "MyRazorApp",
-        "projectPath": "C:\\Users\\USER\\Downloads\\mock-main\\mock-main\\MyRazorApp\\MyRazorApp.csproj",
+        "projectPath": "C:\\Users\\USER\\Desktop\\week10\\MyRazorApp\\MyRazorApp.csproj",
         "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\USER\\Downloads\\mock-main\\mock-main\\MyRazorApp\\obj\\",
+        "outputPath": "C:\\Users\\USER\\Desktop\\week10\\MyRazorApp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -47,6 +47,18 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.AspNetCore.Identity.UI": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",

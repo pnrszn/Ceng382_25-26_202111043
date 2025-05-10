@@ -1,17 +1,19 @@
-using Microsoft.AspNetCore.Http;
+// **AI** i applied the steps until the step 5, but i dont want to use login partial because i already have my login page.
+// if you need any of my codes, i can share it with you if you provide me the file names.
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MyRazorApp.Models;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 
 namespace MyRazorApp.Pages
 {
+    [AllowAnonymous]
     public class LoginModel : PageModel
     {
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
         [BindProperty]
         public string Username { get; set; }
 
@@ -20,85 +22,38 @@ namespace MyRazorApp.Pages
 
         public string ErrorMessage { get; set; }
 
-        private readonly string _usersFilePath;
-
-        public LoginModel(IWebHostEnvironment environment)
+        public LoginModel(SignInManager<ApplicationUser> signInManager)
         {
-            _usersFilePath = Path.Combine(environment.WebRootPath, "data", "users.json");
+            _signInManager = signInManager;
         }
 
         public IActionResult OnGet()
         {
-            // If already logged in, redirect to the table page
-            if (HttpContext.Session.GetString("username") != null)
+            if (User.Identity.IsAuthenticated)
             {
                 return RedirectToPage("./Index");
             }
             return Page();
         }
 
-        public IActionResult OnPostAsync()
+        public async Task<IActionResult> OnPostAsync()
         {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            if (ModelState.IsValid)
             {
-                ErrorMessage = "Username and password are required.";
-                return Page();
-            }
+                var result = await _signInManager.PasswordSignInAsync(
+                    Username,
+                    Password,
+                    isPersistent: false,
+                    lockoutOnFailure: false);
 
-            try
-            {
-                var usersJson = System.IO.File.ReadAllText(_usersFilePath);
-                var users = JsonSerializer.Deserialize<List<User>>(usersJson);
-
-                var user = users?.FirstOrDefault(u =>
-                    u.Username.Equals(Username, StringComparison.OrdinalIgnoreCase) &&
-                    u.Password == Password &&
-                    u.IsActive);
-
-                if (user != null)
+                if (result.Succeeded)
                 {
-                    // Successful login
-                    var token = GenerateSimpleToken();
-                    var sessionId = HttpContext.Session.Id;
-
-                    // Store in session
-                    HttpContext.Session.SetString("username", user.Username);
-                    HttpContext.Session.SetString("token", token);
-                    HttpContext.Session.SetString("session_id", sessionId);
-
-                    // Cookie settings
-                    var cookieOptions = new CookieOptions
-                    {
-                        Expires = DateTimeOffset.Now.AddMinutes(30),
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict
-                    };
-
-                    // Store in cookies
-                    HttpContext.Response.Cookies.Append("username", user.Username, cookieOptions);
-                    HttpContext.Response.Cookies.Append("token", token, cookieOptions);
-                    HttpContext.Response.Cookies.Append("session_id", sessionId, cookieOptions);
-
-                    // Redirect to the table page (Index page from last week)
                     return RedirectToPage("./Index");
                 }
-                else
-                {
-                    ErrorMessage = "Invalid username or password.";
-                    return Page();
-                }
-            }
-            catch (Exception)
-            {
-                ErrorMessage = "An error occurred while trying to log in.";
-                return Page();
-            }
-        }
 
-        private string GenerateSimpleToken()
-        {
-            return Guid.NewGuid().ToString(); // A simple unique token
+                ErrorMessage = "Invalid login attempt.";
+            }
+            return Page();
         }
     }
 }

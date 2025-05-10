@@ -53,36 +53,31 @@
 // **AI** i want the whole login container to appear at the center in the login page 
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MyRazorApp.Models;
 
 namespace MyRazorApp.Pages
 {
     public class LogoutModel : PageModel
     {
-        public IActionResult OnPost()
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public LogoutModel(SignInManager<ApplicationUser> signInManager)
         {
-            // Clear session
-            HttpContext.Session.Clear();
+            _signInManager = signInManager;
+        }
 
-            // Remove cookies
-            HttpContext.Response.Cookies.Delete("username");
-            HttpContext.Response.Cookies.Delete("token");
-            HttpContext.Response.Cookies.Delete("session_id");
-
+        public async Task<IActionResult> OnPostAsync()
+        {
+            await _signInManager.SignOutAsync(); 
             return RedirectToPage("./Login");
         }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGet()
         {
-            // Clear session
-            HttpContext.Session.Clear();
-
-            // Remove cookies
-            HttpContext.Response.Cookies.Delete("username");
-            HttpContext.Response.Cookies.Delete("token");
-            HttpContext.Response.Cookies.Delete("session_id");
-
+            await _signInManager.SignOutAsync(); 
             return RedirectToPage("./Login");
         }
     }
